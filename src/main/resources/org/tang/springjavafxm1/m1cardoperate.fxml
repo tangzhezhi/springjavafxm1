@@ -5,15 +5,26 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.WebView?>
 
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ScrollPane?>
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@global.css" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.M1CardOperateController">
    <children>
-      <Label fx:id="cardLabel" layoutX="99.0" layoutY="109.0" prefHeight="34.0" prefWidth="394.0" text="卡号">
+      <Label fx:id="cardLabel" layoutX="14.0" layoutY="14.0" prefHeight="34.0" prefWidth="394.0" text="卡号">
          <font>
             <Font size="26.0" />
          </font>
       </Label>
-      <TextField fx:id="physicCardField" layoutX="99.0" layoutY="162.0" prefHeight="26.0" prefWidth="234.0" />
-      <Button fx:id="readCardButton" layoutX="347.0" layoutY="162.0" mnemonicParsing="false" onAction="#readCard" text="读卡" />
+      <TextField fx:id="physicCardField" layoutX="14.0" layoutY="55.0" prefHeight="26.0" prefWidth="234.0" />
+      <Button fx:id="readCardButton" layoutX="260.0" layoutY="55.0" mnemonicParsing="false" onAction="#readCard" text="读卡" />
+      <HBox fx:id="hBox"  layoutX="14.0" layoutY="60.0" prefHeight="340.0" prefWidth="585.0">
+         <ScrollPane>
+            <WebView fx:id="myWeb" layoutX="16.0" layoutY="85.0" prefHeight="340" prefWidth="570.0">
+            </WebView>
+         </ScrollPane>
+      </HBox>
+
    </children>
 </Pane>

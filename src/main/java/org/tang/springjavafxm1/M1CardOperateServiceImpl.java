@@ -34,7 +34,12 @@ public class M1CardOperateServiceImpl implements  M1CardOperateService {
                 MfAccess access = new MfAccess(mfCard, 0, 0, Key.A, keyBytes);
                 String cardNo1 = MifareUtils.readMifareClassic1KBlock(mfReaderWriter, access);
                 System.out.println("cardNo::"+cardNo1);
-                physicCardField.setText(cardNo1);
+
+                if(StringUtils.hasText(cardNo1)){
+                    String cardTmp = Long.valueOf(cardNo1.substring(0,8),16).toString();
+                    physicCardField.setText(cardTmp);
+                }
+
             } catch (CardException ce) {
                 System.out.println("Card removed or not present.");
             }
