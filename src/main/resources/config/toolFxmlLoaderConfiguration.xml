@@ -3,11 +3,6 @@
 	<ToolFxmlLoaderConfiguration title="tools"
 		menuId="tools" resourceBundleName="locale.Menu" isMenu="true" />
 
-	<!--<ToolFxmlLoaderConfiguration-->
-		<!--className="org.tang.springjavafxm1.fxmlView.tools.JavaFxXmlToObjectCodeView" resourceBundleName=""-->
-		<!--title="JavaFxXmlToObjectCode" iconPath="/images/icon.jpg"-->
-		<!--menuParentId="tools" controllerType="Node" />-->
-
 	<ToolFxmlLoaderConfiguration
 			className="org.tang.springjavafxm1.fxmlView.tools.ReadCardView" resourceBundleName=""
 			title="读卡" iconPath="/images/icon.jpg"

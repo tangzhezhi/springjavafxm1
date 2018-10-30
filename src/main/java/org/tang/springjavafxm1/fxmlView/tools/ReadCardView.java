@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Scope;
 @Scope("prototype")
 @Lazy
 @FXMLView
-public class JavaFxXmlToObjectCodeView extends AbstractFxmlView {
+public class ReadCardView extends AbstractFxmlView {
 
 }
