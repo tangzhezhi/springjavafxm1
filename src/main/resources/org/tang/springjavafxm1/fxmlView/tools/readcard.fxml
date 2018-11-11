@@ -15,6 +15,7 @@
          <top>
             <HBox  BorderPane.alignment="CENTER_LEFT">
                <children>
+                  <TextField fx:id="cardKeyTextField" prefWidth="200" promptText="卡密钥"/>
                   <TextField fx:id="cardNoTextField" prefWidth="300" promptText="请放卡"/>
                   <Button fx:id="readCardBtn"   text="读卡" onAction="#readCardAction"/>
                </children>

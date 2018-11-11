@@ -1,5 +1,6 @@
 package org.tang.springjavafxm1.service;
 
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import org.nfctools.mf.MfAccess;
 import org.nfctools.mf.MfCardListener;
@@ -11,6 +12,9 @@ import org.tang.springjavafxm1.acr122.MifareUtils;
 
 import javax.smartcardio.CardException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.tang.springjavafxm1.acr122.HexUtils.hexStringToBytes;
 
@@ -20,21 +24,44 @@ import static org.tang.springjavafxm1.acr122.HexUtils.hexStringToBytes;
 @Component
 public class M1CardOperateServiceImpl implements M1CardOperateService {
 
+
     @Override
-    public void readPhysicCardNo(TextField physicCardField) {
+    public void readPhysicCardNo(TextField physicCardField, TextField password, TextArea cardContentTextArea) {
 
         MfCardListener listener = (mfCard, mfReaderWriter) -> {
+            String key = "FFFFFFFFFFFF";
+            byte[] keyBytes = null;
             try {
-                String key = "FFFFFFFFFFFF";
-                byte[] keyBytes = hexStringToBytes(key);
+                if(StringUtils.isEmpty(password.getText())){
+                    keyBytes = hexStringToBytes(key);
+                }
+                else{
+                    keyBytes = hexStringToBytes(password.getText());
+                }
+
                 // Reading with key A
                 MfAccess access = new MfAccess(mfCard, 0, 0, Key.A, keyBytes);
                 String cardNo1 = MifareUtils.readMifareClassic1KBlock(mfReaderWriter, access);
+
+                List<String> keys = new ArrayList<>();
+                keys.add(key);
+
+                List<String> data = MifareUtils.readMifareClassic1KCard(mfReaderWriter,mfCard,keys);
+
                 System.out.println("cardNo::"+cardNo1);
 
                 if(StringUtils.hasText(cardNo1)){
                     String cardTmp = Long.valueOf(cardNo1.substring(0,8),16).toString();
                     physicCardField.setText(cardTmp);
+
+
+                    String dataArea = data.stream().
+//                            map(s->{
+//                        return s+"\n";
+//                    }).
+                    collect(Collectors.joining());
+
+                    cardContentTextArea.setText(dataArea);
                 }
 
             } catch (CardException ce) {
@@ -48,6 +75,7 @@ public class M1CardOperateServiceImpl implements M1CardOperateService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     ;

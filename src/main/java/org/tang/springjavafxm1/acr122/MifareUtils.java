@@ -34,6 +34,7 @@ import org.nfctools.mf.classic.MemoryLayout;
 
 import javax.smartcardio.CardException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -250,4 +251,52 @@ public final class MifareUtils {
         // All keys tested, failed to read block
         System.out.println("<Failed to read block>");
     }
+
+
+    private static String readMifareClassic1KBlock(MfReaderWriter reader, MfCard card, int sectorId, int blockId, List<String> keys) throws CardException {
+        System.out.printf("Sector %02d block %02d: ", sectorId, blockId);
+        for (String key : keys) {
+            // For each provided key...
+            if (isValidMifareClassic1KKey(key)) {
+                byte[] keyBytes = hexStringToBytes(key);
+                // Reading with key A
+                MfAccess access = new MfAccess(card, sectorId, blockId, Key.A, keyBytes);
+                String blockData = readMifareClassic1KBlock(reader, access);
+                if (blockData == null) {
+                    // Reading with key B
+                    access = new MfAccess(card, sectorId, blockId, Key.B, keyBytes);
+                    blockData = readMifareClassic1KBlock(reader, access);
+                }
+                if (blockData != null) {
+                    // Block read
+                    System.out.println(blockData + " (Key " + access.getKey() + ": " + key + ")");
+
+                    String blockDataStr = "Sector "+sectorId+" block "+blockId+" "+blockData+"\n";
+
+                    return blockDataStr;
+                }
+            }
+        }
+
+        // All keys tested, failed to read block
+        System.out.println("<Failed to read block>");
+        return "密钥无效";
+    }
+
+
+    public static List<String> readMifareClassic1KCard(MfReaderWriter reader, MfCard card, List<String> keys)
+            throws CardException {
+
+        List<String> data = new ArrayList<>();
+
+        for (int sectorIndex = 0; sectorIndex < MIFARE_1K_SECTOR_COUNT; sectorIndex++) {
+            // For each sector...
+            for (int blockIndex = 0; blockIndex < MIFARE_1K_PER_SECTOR_BLOCK_COUNT; blockIndex++) {
+                // For each block...
+                data.add(readMifareClassic1KBlock(reader, card, sectorIndex, blockIndex, keys));
+            }
+        }
+        return data;
+    }
+
 }
