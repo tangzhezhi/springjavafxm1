@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.image.ImageView?>
+<AnchorPane prefHeight="457.0" prefWidth="767.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.controller.tools.VideoController">
+   <children>
+      <BorderPane layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+         <top>
+            <HBox  BorderPane.alignment="CENTER_LEFT">
+               <children>
+                  <Button fx:id="videoBtn"   text="打开摄像头" onAction="#openVideoAction"/>
+                  <Button fx:id="closeVideoBtn"   text="关闭摄像头" onAction="#closeVideoAction"/>
+               </children>
+            </HBox>
+         </top>
+         <center>
+            <ImageView fx:id="videoImage"></ImageView>
+         </center>
+      </BorderPane>
+   </children>
+</AnchorPane>

@@ -271,7 +271,10 @@ public final class MifareUtils {
                     // Block read
                     System.out.println(blockData + " (Key " + access.getKey() + ": " + key + ")");
 
-                    String blockDataStr = "Sector "+sectorId+" block "+blockId+" "+blockData+"\n";
+                    String tmpSectorId = sectorId < 10 ? "0"+sectorId : ""+sectorId;
+                    String tmpBlockData = blockId < 10 ? "0"+blockId : ""+blockId;
+
+                    String blockDataStr = "Sector "+tmpSectorId+" block "+tmpBlockData+" "+blockData+"\n";
 
                     return blockDataStr;
                 }

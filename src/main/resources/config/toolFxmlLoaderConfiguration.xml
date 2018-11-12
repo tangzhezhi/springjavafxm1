@@ -8,6 +8,11 @@
 			title="读卡" iconPath="/images/icon.jpg"
 			menuParentId="tools" controllerType="Node" />
 
+	<ToolFxmlLoaderConfiguration
+			className="org.tang.springjavafxm1.fxmlView.tools.VideoView" resourceBundleName=""
+			title="摄像头" iconPath="/images/icon.jpg"
+			menuParentId="tools" controllerType="Node" />
+
 	<!--<ToolFxmlLoaderConfiguration url="/web/littleTools/cron/index.htm"-->
 		<!--title="webCronExpBuilder" menuParentId="netWorkToolsMenu"-->
 		<!--controllerType="WebView" />-->
