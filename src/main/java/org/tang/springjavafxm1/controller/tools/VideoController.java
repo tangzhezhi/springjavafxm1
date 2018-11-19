@@ -11,7 +11,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfRect;
+import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.videoio.VideoCapture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -32,13 +35,16 @@ public class VideoController implements Initializable {
 	private ImageView videoImage;
 
 	@FXML
+	private ImageView faceImage;
+
+	@FXML
 	private Button videoBtn;
 
-	private Mat frame;
+	private Mat frame = new Mat();
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
 	// the OpenCV object that realizes the video capture
-	private  VideoCapture capture;
+	private  VideoCapture capture =  new VideoCapture();
 	// a flag to change the button behavior
 	private static  boolean cameraActive = false;
 	// the id of the camera to be used
@@ -46,9 +52,6 @@ public class VideoController implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		if(capture == null){
-			capture  = new VideoCapture();
-		}
 	}
 
 
@@ -64,7 +67,10 @@ public class VideoController implements Initializable {
 	@FXML
 	private void openVideoAction(ActionEvent event) throws Exception{
 			// start the video capture
-			this.capture.open(cameraId);
+			if(!this.capture.isOpened()){
+				this.capture.open(cameraId);
+			}
+
 			// is the video stream available?
 			if (this.capture.isOpened())
 			{
@@ -76,7 +82,6 @@ public class VideoController implements Initializable {
 					{
 						// effectively grab and process a single frame
 						Mat frame = grabFrame();
-						frame.reshape(2);
 						// convert and show the frame
 						Image imageToShow = OpenCvUtils.mat2Image(frame);
 						updateImageView(videoImage, imageToShow);
@@ -101,8 +106,6 @@ public class VideoController implements Initializable {
 	 */
 	private Mat grabFrame()
 	{
-		// init everything
-		frame = new Mat();
 		// check if the capture is open
 		if (this.capture.isOpened())
 		{
@@ -147,6 +150,7 @@ public class VideoController implements Initializable {
 		{
 			this.capture.release();
 			this.frame.release();
+
 		}
 
 	}
@@ -173,5 +177,27 @@ public class VideoController implements Initializable {
 	}
 
 
+	public void getFaceAction(ActionEvent actionEvent) {
+		CascadeClassifier faceDetector = new CascadeClassifier("D:\\work\\springjavafxm1\\target\\classes\\config\\lbpcascade_frontalface.xml");
+		if (!frame.empty() ){
 
+			Mat tmp = new Mat();
+			frame.copyTo(tmp);
+			MatOfRect faceDetections = new MatOfRect();
+			faceDetector.detectMultiScale(tmp, faceDetections);
+			System.out.println(String.format("Detected %s faces",
+					faceDetections.toArray().length));
+
+			for(Rect rect : faceDetections.toList()){
+
+
+				Mat imgROI = new Mat(tmp, new Rect(rect.x-50, rect.y-100, rect.width+100, rect.height+150));
+				Image imageToShow = OpenCvUtils.mat2Image(imgROI);
+				updateImageView(faceImage, imageToShow);
+				imgROI.release();
+			}
+
+			tmp.release();
+		}
+	}
 }
