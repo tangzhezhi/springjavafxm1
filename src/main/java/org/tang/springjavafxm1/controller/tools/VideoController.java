@@ -9,6 +9,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Lazy;
 import org.tang.springjavafxm1.service.M1CardOperateService;
 import org.tang.springjavafxm1.utils.OpenCvUtils;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
@@ -200,4 +202,6 @@ public class VideoController implements Initializable {
 			tmp.release();
 		}
 	}
+
+
 }
