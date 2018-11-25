@@ -8,27 +8,24 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Label?>
 <AnchorPane prefHeight="457.0" prefWidth="767.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.controller.picture.FaceController">
    <children>
-      <BorderPane layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+      <BorderPane  layoutX="14.0" layoutY="7.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
          <top>
             <HBox BorderPane.alignment="CENTER_LEFT">
                <children>
+                  <Label fx:id="selectFileDirLabel" prefWidth="140.0" wrapText="true" text="文件夹路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
                   <Button fx:id="selectFileDirBtn" onAction="#selectFaceDirAction" text="选择文件夹" />
-                  <Button fx:id="selectFileBtn" onAction="#selectFaceAction" text="选择文件" />
-                  <Button fx:id="dealPictureBtn" onAction="#dealPictureAction" text="处理图片" />
+                  <Label fx:id="saveFileDirLabel" prefWidth="100.0" wrapText="true" text="保存路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
+                  <Button fx:id="saveFileDirBtn" onAction="#saveFileDirAction" text="保存到" />
+                  <!--<Button fx:id="selectFileBtn" onAction="#selectFaceAction" text="选择文件" />-->
+                  <Button fx:id="dealPictureBtn" onAction="#dealPictureAction" text="开始处理" />
                </children>
             </HBox>
          </top>
-         <center>
-            <HBox BorderPane.alignment="CENTER_LEFT" spacing="10" maxWidth="Infinity"  HBox.hgrow="ALWAYS">
-               <children>
-                  <GridPane prefHeight="200" prefWidth="200">
-                     <TextArea fx:id="resultArea"></TextArea>
-                  </GridPane>
-               </children>
-            </HBox>
-
+         <center >
+            <TextArea fx:id="resultArea" prefHeight="400.0" prefWidth="760.0" BorderPane.alignment="CENTER"/>
          </center>
       </BorderPane>
    </children>
