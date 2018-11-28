@@ -306,6 +306,18 @@
             <version>1.19</version>
         </dependency>
 
+        <dependency>
+            <groupId>hu.computertechnika</groupId>
+            <artifactId>paginationfx</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>hu.computertechnika</groupId>
+            <artifactId>paginationfx-qdsl-jdbc</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -9,15 +9,18 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import hu.computertechnika.paginationfx.control.PaginationTableView?>
 <AnchorPane prefHeight="457.0" prefWidth="767.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.controller.picture.FaceController">
    <children>
       <BorderPane  layoutX="14.0" layoutY="7.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
          <top>
             <HBox BorderPane.alignment="CENTER_LEFT">
                <children>
-                  <Label fx:id="selectFileDirLabel" prefWidth="140.0" wrapText="true" text="文件夹路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
+                  <Label fx:id="selectFileDirLabel" prefWidth="140.0" wrapText="false" text="文件夹路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
                   <Button fx:id="selectFileDirBtn" onAction="#selectFaceDirAction" text="选择文件夹" />
-                  <Label fx:id="saveFileDirLabel" prefWidth="100.0" wrapText="true" text="保存路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
+                  <Label fx:id="saveFileDirLabel" prefWidth="100.0" wrapText="false" text="保存路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
                   <Button fx:id="saveFileDirBtn" onAction="#saveFileDirAction" text="保存到" />
                   <!--<Button fx:id="selectFileBtn" onAction="#selectFaceAction" text="选择文件" />-->
                   <Button fx:id="dealPictureBtn" onAction="#dealPictureAction" text="开始处理" />
@@ -25,8 +28,18 @@
             </HBox>
          </top>
          <center >
-            <TextArea fx:id="resultArea" prefHeight="400.0" prefWidth="760.0" BorderPane.alignment="CENTER"/>
+            <PaginationTableView fx:id="paginationTableView">
+              <tableView>
+                 <columns>
+                    <TableColumn fx:id="fileNoTableColumn" prefWidth="75.0" text="序号" />
+                    <TableColumn fx:id="fileNameTableColumn" prefWidth="600.0" text="文件名" />
+                 </columns>
+              </tableView>
+            </PaginationTableView>
          </center>
+         <!--<left>-->
+            <!--<TextArea fx:id="resultArea" prefHeight="100.0" prefWidth="60.0" BorderPane.alignment="CENTER"/>-->
+         <!--</left>-->
       </BorderPane>
    </children>
 </AnchorPane>

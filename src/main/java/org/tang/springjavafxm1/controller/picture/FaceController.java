@@ -1,11 +1,16 @@
 package org.tang.springjavafxm1.controller.picture;
 
 import de.felixroske.jfxsupport.FXMLController;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.opencv.core.Mat;
@@ -13,15 +18,22 @@ import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.objdetect.CascadeClassifier;
-import javafx.scene.control.TextArea;
+import org.tang.springjavafxm1.model.PictureFileTableEntity;
+import hu.computertechnika.paginationfx.control.PaginationTableView;
+import hu.computertechnika.paginationfx.data.ComparableCollectionDataProvider;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @FXMLController
 public class FaceController implements Initializable {
@@ -48,8 +60,8 @@ public class FaceController implements Initializable {
 
 	private static File saveFileDir ;
 
-	@FXML
-	private TextArea resultArea;
+//	@FXML
+//	private TextArea resultArea;
 
 	@FXML
 	private Label selectFileDirLabel;
@@ -57,11 +69,29 @@ public class FaceController implements Initializable {
 	@FXML
 	private Label saveFileDirLabel;
 
+	@FXML
+	protected TableView<PictureFileTableEntity> tableViewMain;
+	@FXML
+	protected TableColumn<PictureFileTableEntity, String> fileNoTableColumn;
+	@FXML
+	protected TableColumn<PictureFileTableEntity, String> fileNameTableColumn;
+
+	@FXML
+	private PaginationTableView<PictureFileTableEntity> paginationTableView ;
+
+	private ObservableList<PictureFileTableEntity> tableData = FXCollections.observableArrayList();
+	AtomicInteger nums = new AtomicInteger(0);
 
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		fileNoTableColumn.setCellValueFactory(c->c.getValue().fileNoProperty());
+		fileNameTableColumn.setCellValueFactory(c->c.getValue().fileNameProperty());
+//		tableViewMain.setItems(tableData);
 	}
+
+
+
 
 
 	public void selectFaceDirAction(ActionEvent actionEvent) {
@@ -74,8 +104,10 @@ public class FaceController implements Initializable {
 	}
 
 	public void dealPictureAction(ActionEvent actionEvent) {
-		System.out.println("deal picture");
 
+		ArrayList<PictureFileTableEntity> data = new ArrayList<PictureFileTableEntity>();
+		System.out.println("deal picture");
+		nums.set(0);
 		if(waitDealFile!=null && waitDealFile.length > 0){
 			//			CascadeClassifier faceDetector = new CascadeClassifier("D:\\work\\springjavafxm1\\target\\classes\\config\\lbpcascade_frontalface.xml");
 			CascadeClassifier faceDetector = null;
@@ -88,28 +120,20 @@ public class FaceController implements Initializable {
 				MatOfRect faceDetections = new MatOfRect();
 				finalFaceDetector.detectMultiScale(tmp, faceDetections);
 
-				resultArea.setPrefRowCount(faceDetections.toList().size());
-				resultArea.setPrefRowCount(2);
-
 				faceDetections.toList().parallelStream().forEach(rect->{
 					Mat imgROI = new Mat(tmp, new Rect(rect.x, rect.y, rect.width, rect.height));
 					String tmpStr = saveFileDir.getAbsolutePath()+File.separator+f.getName();
 					Imgcodecs.imwrite(tmpStr,imgROI);
-					resultArea.appendText(tmpStr+"\n");
+					nums.getAndAdd(1);
+					PictureFileTableEntity pictureFileTableEntity = new PictureFileTableEntity(String.valueOf(nums.get()),tmpStr);
+//					tableData.add(pictureFileTableEntity);
+					data.add(pictureFileTableEntity);
+
 				});
-
-
-//				for(Rect rect : faceDetections.toList()){
-//					Mat imgROI = new Mat(tmp, new Rect(rect.x, rect.y, rect.width, rect.height));
-////					Imgcodecs.imwrite("C:\\Users\\Administrator\\Desktop\\11\\test.jpg",imgROI);
-//					System.out.println("f.getName:::::::"+f.getName());
-//
-//					String tmpStr = saveFileDir.getAbsolutePath()+File.separator+f.getName();
-//
-//					Imgcodecs.imwrite(tmpStr,imgROI);
-//					resultArea.appendText(tmpStr+"\n");
-//				}
 			});
+
+			paginationTableView.setDataProvider(new ComparableCollectionDataProvider<>(data));
+			paginationTableView.setPageSize(100);
 		}
 	}
 
