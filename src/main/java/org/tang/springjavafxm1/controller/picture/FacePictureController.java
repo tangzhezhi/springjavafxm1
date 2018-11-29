@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 @FXMLController
-public class FaceController implements Initializable {
+public class FacePictureController implements Initializable {
 
 	private final FileChooser fileChooser = new FileChooser();
 
@@ -133,7 +133,7 @@ public class FaceController implements Initializable {
 			});
 
 			paginationTableView.setDataProvider(new ComparableCollectionDataProvider<>(data));
-			paginationTableView.setPageSize(100);
+			paginationTableView.setPageSize(50);
 		}
 	}
 

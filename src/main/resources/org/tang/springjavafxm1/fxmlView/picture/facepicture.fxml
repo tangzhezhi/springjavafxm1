@@ -12,7 +12,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TableColumn?>
 <?import hu.computertechnika.paginationfx.control.PaginationTableView?>
-<AnchorPane prefHeight="457.0" prefWidth="767.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.controller.picture.FaceController">
+<AnchorPane prefHeight="457.0" prefWidth="767.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.tang.springjavafxm1.controller.picture.FacePictureController">
    <children>
       <BorderPane  layoutX="14.0" layoutY="7.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
          <top>

@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Scope;
 @Scope("prototype")
 @Lazy
 @FXMLView
-public class FaceView extends AbstractFxmlView {
+public class FacePictureView extends AbstractFxmlView {
 
 }

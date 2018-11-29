@@ -18,7 +18,7 @@
 
 
 	<ToolFxmlLoaderConfiguration
-			className="org.tang.springjavafxm1.fxmlView.picture.FaceView" resourceBundleName=""
+			className="org.tang.springjavafxm1.fxmlView.picture.FacePictureView" resourceBundleName=""
 			title="人脸处理" iconPath="/images/icon.jpg"
 			menuParentId="picture" controllerType="Node" />
 
