@@ -13,23 +13,32 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.objdetect.CascadeClassifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tang.springjavafxm1.model.PictureFileTableEntity;
 import hu.computertechnika.paginationfx.control.PaginationTableView;
 import hu.computertechnika.paginationfx.data.ComparableCollectionDataProvider;
+import org.tang.springjavafxm1.model.facenet.InceptionResNetV1;
+import org.tang.springjavafxm1.utils.facenet.FaceDetection;
+import org.tang.springjavafxm1.utils.facenet.FaceDetector;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -38,138 +47,283 @@ import static java.util.stream.Collectors.toList;
 @FXMLController
 public class FacePictureController implements Initializable {
 
-	private final FileChooser fileChooser = new FileChooser();
+    private static final Logger log = LoggerFactory.getLogger(FaceDetection.class);
+    private static final NativeImageLoader loader = new NativeImageLoader();
+    private static final HashMap<String, INDArray> imageLibMap = new HashMap<String, INDArray>();
+    private static FaceDetector detector;
+    private static ComputationGraph graph;
+    private static double threshold = 1.1;
 
-	private final DirectoryChooser directoryChooser=new DirectoryChooser();
+    private final FileChooser fileChooser = new FileChooser();
 
-	private final Desktop desktop = Desktop.getDesktop();
+    private final DirectoryChooser directoryChooser = new DirectoryChooser();
 
-	@FXML
-	private Button dealPictureBtn;
+    private final Desktop desktop = Desktop.getDesktop();
 
-	@FXML
-	private Button selectFileDirBtn;
+    @FXML
+    private Button dealPictureBtn;
 
-	@FXML
-	private Button saveFileDirBtn;
+    @FXML
+    private Button selectFileDirBtn;
 
-	@FXML
-	private Button selectFileBtn;
+    @FXML
+    private Button saveFileDirBtn;
 
-	private File[] waitDealFile ;
+    @FXML
+    private Button selectFileBtn;
 
-	private static File saveFileDir ;
+    private File[] waitDealFile;
+
+    private static File saveFileDir;
 
 //	@FXML
 //	private TextArea resultArea;
 
-	@FXML
-	private Label selectFileDirLabel;
+    @FXML
+    private Label selectFileDirLabel;
 
-	@FXML
-	private Label saveFileDirLabel;
+    @FXML
+    private Label saveFileDirLabel;
 
-	@FXML
-	protected TableView<PictureFileTableEntity> tableViewMain;
-	@FXML
-	protected TableColumn<PictureFileTableEntity, String> fileNoTableColumn;
-	@FXML
-	protected TableColumn<PictureFileTableEntity, String> fileNameTableColumn;
+    @FXML
+    protected TableView<PictureFileTableEntity> tableViewMain;
+    @FXML
+    protected TableColumn<PictureFileTableEntity, String> fileNoTableColumn;
+    @FXML
+    protected TableColumn<PictureFileTableEntity, String> fileNameTableColumn;
 
-	@FXML
-	private PaginationTableView<PictureFileTableEntity> paginationTableView ;
+    @FXML
+    protected TableColumn<PictureFileTableEntity, String> humanNameTableColumn;
 
-	private ObservableList<PictureFileTableEntity> tableData = FXCollections.observableArrayList();
-	AtomicInteger nums = new AtomicInteger(0);
+    @FXML
+    private PaginationTableView<PictureFileTableEntity> paginationTableView;
+
+    private ObservableList<PictureFileTableEntity> tableData = FXCollections.observableArrayList();
+    AtomicInteger nums = new AtomicInteger(0);
 
 
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
-		fileNoTableColumn.setCellValueFactory(c->c.getValue().fileNoProperty());
-		fileNameTableColumn.setCellValueFactory(c->c.getValue().fileNameProperty());
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        fileNoTableColumn.setCellValueFactory(c -> c.getValue().fileNoProperty());
+        fileNameTableColumn.setCellValueFactory(c -> c.getValue().fileNameProperty());
+        humanNameTableColumn.setCellValueFactory(c -> c.getValue().humanNameProperty());
+
+        paginationTableView.getTableView().setRowFactory(tv -> {
+            TableRow<PictureFileTableEntity> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    PictureFileTableEntity rowData = row.getItem();
+                    System.out.println(rowData);
+                }
+            });
+            return row;
+        });
+
+            ExecutorService executorService =  Executors.newSingleThreadExecutor();
+            executorService.submit(() -> {
+                try {
+                    initHumanLib();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            executorService.shutdown();
+
 //		tableViewMain.setItems(tableData);
-	}
+    }
 
 
+    public void selectFaceDirAction(ActionEvent actionEvent) {
+        File file = directoryChooser.showDialog(selectFileDirBtn.getContextMenu());
+        if (file != null && file.isDirectory()) {
+            System.out.println(file.getName());
+            waitDealFile = file.listFiles();
+            selectFileDirLabel.setText(file.getAbsolutePath());
+        }
+    }
 
+    public void dealPictureAction(ActionEvent actionEvent) {
 
+        ArrayList<PictureFileTableEntity> data = new ArrayList<PictureFileTableEntity>();
+        System.out.println("deal picture");
+        nums.set(0);
+        if (waitDealFile != null && waitDealFile.length > 0) {
+            //			CascadeClassifier faceDetector = new CascadeClassifier("D:\\work\\springjavafxm1\\target\\classes\\config\\lbpcascade_frontalface.xml");
+            CascadeClassifier faceDetector = null;
+            faceDetector = new CascadeClassifier(new File(this.getClass().getResource("/").getPath()).getAbsolutePath() + "\\config\\lbpcascade_frontalface.xml");
+            CascadeClassifier finalFaceDetector = faceDetector;
+            Arrays.stream(waitDealFile).forEach(f -> {
+                Mat img = Imgcodecs.imread(f.getAbsolutePath());
+                Mat tmp = new Mat();
+                img.copyTo(tmp);
+                MatOfRect faceDetections = new MatOfRect();
+                finalFaceDetector.detectMultiScale(tmp, faceDetections);
 
-	public void selectFaceDirAction(ActionEvent actionEvent) {
-		File file = directoryChooser.showDialog(selectFileDirBtn.getContextMenu());
-		if (file != null && file.isDirectory()) {
-			System.out.println(file.getName());
-			waitDealFile = file.listFiles();
-			selectFileDirLabel.setText(file.getAbsolutePath());
-		}
-	}
+                faceDetections.toList().parallelStream().forEach(rect -> {
+                    Mat imgROI = new Mat(tmp, new Rect(rect.x, rect.y, rect.width, rect.height));
+                    String tmpStr = saveFileDir.getAbsolutePath() + File.separator + f.getName();
+                    Imgcodecs.imwrite(tmpStr, imgROI);
+                    nums.getAndAdd(1);
 
-	public void dealPictureAction(ActionEvent actionEvent) {
+                    String humanName = "";
 
-		ArrayList<PictureFileTableEntity> data = new ArrayList<PictureFileTableEntity>();
-		System.out.println("deal picture");
-		nums.set(0);
-		if(waitDealFile!=null && waitDealFile.length > 0){
-			//			CascadeClassifier faceDetector = new CascadeClassifier("D:\\work\\springjavafxm1\\target\\classes\\config\\lbpcascade_frontalface.xml");
-			CascadeClassifier faceDetector = null;
-			faceDetector = new CascadeClassifier(	new File(this.getClass().getResource("/").getPath()).getAbsolutePath()+"\\config\\lbpcascade_frontalface.xml");
-			CascadeClassifier finalFaceDetector = faceDetector;
-			Arrays.stream(waitDealFile).forEach(f->{
-				Mat img = Imgcodecs.imread(f.getAbsolutePath());
-				Mat tmp = new Mat();
-				img.copyTo(tmp);
-				MatOfRect faceDetections = new MatOfRect();
-				finalFaceDetector.detectMultiScale(tmp, faceDetections);
+                    humanName = dealPictureGetHumanName(f);
 
-				faceDetections.toList().parallelStream().forEach(rect->{
-					Mat imgROI = new Mat(tmp, new Rect(rect.x, rect.y, rect.width, rect.height));
-					String tmpStr = saveFileDir.getAbsolutePath()+File.separator+f.getName();
-					Imgcodecs.imwrite(tmpStr,imgROI);
-					nums.getAndAdd(1);
-					PictureFileTableEntity pictureFileTableEntity = new PictureFileTableEntity(String.valueOf(nums.get()),tmpStr);
+                    System.out.println("humanName:::::"+humanName);
+
+                    PictureFileTableEntity pictureFileTableEntity = new PictureFileTableEntity(String.valueOf(nums.get()), tmpStr, humanName);
 //					tableData.add(pictureFileTableEntity);
-					data.add(pictureFileTableEntity);
+                    data.add(pictureFileTableEntity);
 
-				});
-			});
+                });
+            });
 
-			paginationTableView.setDataProvider(new ComparableCollectionDataProvider<>(data));
-			paginationTableView.setPageSize(50);
-		}
-	}
+            paginationTableView.setDataProvider(new ComparableCollectionDataProvider<>(data));
+            paginationTableView.setPageSize(50);
+        }
+    }
 
-	private static void configureFileChooser(final FileChooser fileChooser){
-		fileChooser.setInitialDirectory(
-				new File(System.getProperty("user.home"))
-		);
-	}
+    private static void configureFileChooser(final FileChooser fileChooser) {
+        fileChooser.setInitialDirectory(
+                new File(System.getProperty("user.home"))
+        );
+    }
 
-	private void openFile(File file) {
-		EventQueue.invokeLater(() -> {
-			try {
-				desktop.open(file);
-			} catch (IOException ex) {
-				 ex.printStackTrace();
-			}
-		});
-	}
+    private void openFile(File file) {
+        EventQueue.invokeLater(() -> {
+            try {
+                desktop.open(file);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
 
-	public void selectFaceAction(ActionEvent actionEvent) {
-		configureFileChooser(fileChooser);
-		File file = fileChooser.showOpenDialog(selectFileDirBtn.getContextMenu());
-		if (file != null) {
-			openFile(file);
-		}
-	}
+    public void selectFaceAction(ActionEvent actionEvent) {
+        configureFileChooser(fileChooser);
+        File file = fileChooser.showOpenDialog(selectFileDirBtn.getContextMenu());
+        if (file != null) {
+            openFile(file);
+        }
+    }
 
-	/**
-	 * 保存到
-	 * @param actionEvent
-	 */
-	public void saveFileDirAction(ActionEvent actionEvent) {
-		File file = directoryChooser.showDialog(saveFileDirBtn.getContextMenu());
-		if (file != null && file.isDirectory()) {
-			saveFileDir = file;
-			saveFileDirLabel.setText(file.getAbsolutePath());
-		}
-	}
+    /**
+     * 保存到
+     *
+     * @param actionEvent
+     */
+    public void saveFileDirAction(ActionEvent actionEvent) {
+        File file = directoryChooser.showDialog(saveFileDirBtn.getContextMenu());
+        if (file != null && file.isDirectory()) {
+            saveFileDir = file;
+            saveFileDirLabel.setText(file.getAbsolutePath());
+        }
+    }
+
+    public String dealPictureGetHumanName(File img) {
+        String label = "none";
+        try {
+            System.out.print("Insert image path:");
+            File file = img;
+            INDArray factor = getFaceFactor(file);
+            if (factor == null) {
+                System.out.println("error:cannot detect face.");
+            }
+            double minVal = Double.MAX_VALUE;
+
+            for (Map.Entry<String, INDArray> entry : imageLibMap.entrySet()) {
+                INDArray tmp = factor.sub(entry.getValue());
+                tmp = tmp.mul(tmp).sum(1);
+                double tmpVal = tmp.getDouble(0);
+                if (log.isDebugEnabled()) {
+                    log.debug("current factor is {}", factor);
+                    log.debug("similarity with {} is {}", entry.getKey(), tmp);
+                }
+                if (tmpVal < minVal) {
+                    minVal = tmpVal;
+                    label = entry.getKey();
+                }
+            }
+
+            if (minVal < threshold) {
+                System.out.println("this is " + label + "(" + minVal + ").");
+            } else {
+                System.out.println("cannot recognize this person, but the similar one is "
+                        + label + "(" + minVal + ").");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return label;
+    }
+
+
+    public void initHumanLib() throws Exception {
+        detector = new FaceDetector();
+        InceptionResNetV1 v1 = new InceptionResNetV1();
+        v1.init();
+        v1.loadWeightData();
+        graph = v1.getGraph();
+        File libPath = new File(new File(this.getClass().getResource("/").getPath()).getAbsolutePath() + "\\humanFaceLib");
+        if (!libPath.exists() || !libPath.isDirectory()) {
+            throw new RuntimeException("path " + libPath + "is not directory!");
+        }
+        log.info("loading face library from directory {}, threshold is {}", libPath, threshold);
+        for (File file : libPath.listFiles()) {
+            if (!file.isFile()) {
+                log.info("skipped directory:{}", file);
+                continue;
+            }
+            try {
+                String label = file.getName();
+                int labelIdx = label.lastIndexOf('.');
+                if (labelIdx != -1) {
+                    label = label.substring(0, labelIdx);
+                }
+                log.info("Loading image {}......", file);
+                INDArray factor = getFaceFactor(file);
+                if (factor == null) {
+                    continue;
+                }
+
+                imageLibMap.put(label, factor);
+                log.info("Face of {} loaded.", label);
+                if (log.isDebugEnabled()) {
+                    log.debug("factor of {} is {}", label, factor);
+                }
+            } catch (IOException e) {
+                log.warn("Exception occured while loading img file:" + file, e);
+            }
+        }
+        log.info("load faces complete.");
+        System.out.println("start detect");
+    }
+
+
+    private static INDArray getFaceFactor(File img) throws IOException {
+        INDArray srcImg = loader.asMatrix(img);
+        INDArray[] detection = new INDArray[0];
+        try {
+            detection = detector.getFaceImage(srcImg, 160, 160);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (detection == null) {
+            log.warn("no face detected in image file:{}", img);
+            return null;
+        }
+        if (detection.length > 1) {
+            log.warn("{} faces detected in image file:{}, the first detected face will be used.",
+                    detection.length, img);
+        }
+        if (log.isDebugEnabled()) {
+            ImageIO.write(detector.toImage(detection[0]), "jpg", new File(img.getName()));
+        }
+        INDArray output[] = graph.output(InceptionResNetV1.prewhiten(detection[0]));
+        return output[1];
+    }
+
 }

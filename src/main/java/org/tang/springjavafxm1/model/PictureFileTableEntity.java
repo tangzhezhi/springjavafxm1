@@ -5,13 +5,15 @@ import javafx.beans.property.SimpleStringProperty;
 public class PictureFileTableEntity implements Comparable<PictureFileTableEntity> {
     private SimpleStringProperty fileName;
     private SimpleStringProperty fileNo;
+    private SimpleStringProperty humanName;
 
     public PictureFileTableEntity() {
     }
 
-    public PictureFileTableEntity(String fileNo, String fileName) {
+    public PictureFileTableEntity(String fileNo, String fileName,String humanName) {
         this.fileNo = new SimpleStringProperty(fileNo);
         this.fileName = new SimpleStringProperty(fileName);
+        this.humanName = new SimpleStringProperty(humanName);
 
     }
 
@@ -39,11 +41,24 @@ public class PictureFileTableEntity implements Comparable<PictureFileTableEntity
         this.fileNo.set(fileNo);
     }
 
+    public String getHumanName() {
+        return humanName.get();
+    }
+
+    public SimpleStringProperty humanNameProperty() {
+        return humanName;
+    }
+
+    public void setHumanName(String humanName) {
+        this.humanName.set(humanName);
+    }
+
     @Override
     public String toString() {
         return "PictureFileTableEntity{" +
                 "fileName=" + fileName +
                 ", fileNo=" + fileNo +
+                ", humanName=" + humanName +
                 '}';
     }
 

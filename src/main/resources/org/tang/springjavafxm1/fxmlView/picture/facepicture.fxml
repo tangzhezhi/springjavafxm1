@@ -33,6 +33,7 @@
                  <columns>
                     <TableColumn fx:id="fileNoTableColumn" prefWidth="75.0" text="序号" />
                     <TableColumn fx:id="fileNameTableColumn" prefWidth="600.0" text="文件名" />
+                    <TableColumn fx:id="humanNameTableColumn" prefWidth="60.0" text="人名" />
                  </columns>
               </tableView>
             </PaginationTableView>

@@ -19,6 +19,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <springboot-javafx.version>2.1.6</springboot-javafx.version>
+
+        <nd4j.backend>nd4j-native-platform</nd4j.backend>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <shadedClassifier>bin</shadedClassifier>
+        <java.version>1.8</java.version>
+        <nd4j.version>1.0.0-beta2</nd4j.version>
+        <dl4j.version>1.0.0-beta2</dl4j.version>
     </properties>
 
 
@@ -316,6 +323,24 @@
             <groupId>hu.computertechnika</groupId>
             <artifactId>paginationfx-qdsl-jdbc</artifactId>
             <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-native-platform</artifactId>
+            <version>${nd4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>${nd4j.backend}</artifactId>
+            <version>${nd4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>${dl4j.version}</version>
         </dependency>
 
     </dependencies>

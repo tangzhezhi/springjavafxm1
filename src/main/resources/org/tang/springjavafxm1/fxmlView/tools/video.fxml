@@ -16,6 +16,7 @@
                   <Button fx:id="videoBtn" onAction="#openVideoAction" text="打开摄像头" />
                   <Button fx:id="closeVideoBtn" onAction="#closeVideoAction" text="关闭摄像头" />
                   <Button fx:id="faceBtn" onAction="#getFaceAction" text="获取头像" />
+                  <Button fx:id="faceIdentityBtn" onAction="#identityFaceAction" text="识别头像" />
                </children>
             </HBox>
          </top>

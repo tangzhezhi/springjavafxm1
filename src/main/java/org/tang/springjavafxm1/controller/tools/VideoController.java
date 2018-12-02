@@ -180,7 +180,7 @@ public class VideoController implements Initializable {
 
 
 	public void getFaceAction(ActionEvent actionEvent) {
-		CascadeClassifier faceDetector = new CascadeClassifier("D:\\work\\springjavafxm1\\target\\classes\\config\\lbpcascade_frontalface.xml");
+		CascadeClassifier faceDetector = new CascadeClassifier(	new File(this.getClass().getResource("/").getPath()).getAbsolutePath()+"\\config\\lbpcascade_frontalface.xml");
 		if (!frame.empty() ){
 
 			Mat tmp = new Mat();
@@ -204,4 +204,7 @@ public class VideoController implements Initializable {
 	}
 
 
+	public void identityFaceAction(ActionEvent actionEvent) {
+
+	}
 }
