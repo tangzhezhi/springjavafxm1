@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.tang.springjavafxm1.mapper.FaceMapper">
+    <resultMap id="BaseResultMap"
+               type="org.tang.springjavafxm1.entity.Face">
+        <id column="ID" property="id" jdbcType="INTEGER"/>
+        <result column="Lable" property="label"
+                jdbcType="CHAR"/>
+        <result column="Data" property="data"
+                jdbcType="CHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      ID, label, data
+    </sql>
+
+    <select id="selectByPrimaryKey"
+            resultMap="BaseResultMap"
+            parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from Face
+        where ID = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAllFace"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from Face
+    </select>
+
+    <insert id="insert"
+            parameterType="org.tang.springjavafxm1.entity.Face"
+            useGeneratedKeys="true" keyProperty="id">
+    insert into face (id,label, data)
+    values (
+      #{id,jdbcType=INTEGER},
+      #{label,jdbcType=CHAR},
+      #{data,jdbcType=CHAR}
+    )
+  </insert>
+
+</mapper>

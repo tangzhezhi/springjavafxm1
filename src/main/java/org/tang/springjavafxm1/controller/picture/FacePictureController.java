@@ -1,5 +1,8 @@
 package org.tang.springjavafxm1.controller.picture;
 
+import com.esotericsoftware.kryo.util.IntArray;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.felixroske.jfxsupport.FXMLController;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -16,6 +19,7 @@ import javafx.stage.FileChooser;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
@@ -23,10 +27,13 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.objdetect.CascadeClassifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.tang.springjavafxm1.entity.Face;
 import org.tang.springjavafxm1.model.PictureFileTableEntity;
 import hu.computertechnika.paginationfx.control.PaginationTableView;
 import hu.computertechnika.paginationfx.data.ComparableCollectionDataProvider;
 import org.tang.springjavafxm1.model.facenet.InceptionResNetV1;
+import org.tang.springjavafxm1.service.FaceService;
 import org.tang.springjavafxm1.utils.facenet.FaceDetection;
 import org.tang.springjavafxm1.utils.facenet.FaceDetector;
 
@@ -37,6 +44,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -100,6 +108,9 @@ public class FacePictureController implements Initializable {
 
     private ObservableList<PictureFileTableEntity> tableData = FXCollections.observableArrayList();
     AtomicInteger nums = new AtomicInteger(0);
+
+    @Autowired
+    private FaceService faceService;
 
 
     @Override
@@ -226,7 +237,14 @@ public class FacePictureController implements Initializable {
         try {
             System.out.print("Insert image path:");
             File file = img;
+            long start = System.currentTimeMillis();
+            System.out.println("before"+start);
             INDArray factor = getFaceFactor(file);
+
+
+
+
+            System.out.println("after"+(System.currentTimeMillis()-start));
             if (factor == null) {
                 System.out.println("error:cannot detect face.");
             }
@@ -253,6 +271,27 @@ public class FacePictureController implements Initializable {
                         + label + "(" + minVal + ").");
             }
 
+
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            String finalLabel = label;
+            executorService.submit(()->{
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    Nd4j.writeTxt(factor,"D:\\tmp.txt");
+                    File fileTmp = new File("D:\\tmp.txt");
+                    String dataStr = objectMapper.writeValueAsString(fileTmp);
+                    try {
+                        faceService.addFace(Face.builder().label(finalLabel).data(dataStr).build());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            executorService.shutdown();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -272,32 +311,50 @@ public class FacePictureController implements Initializable {
             throw new RuntimeException("path " + libPath + "is not directory!");
         }
         log.info("loading face library from directory {}, threshold is {}", libPath, threshold);
-        for (File file : libPath.listFiles()) {
-            if (!file.isFile()) {
-                log.info("skipped directory:{}", file);
-                continue;
-            }
-            try {
-                String label = file.getName();
-                int labelIdx = label.lastIndexOf('.');
-                if (labelIdx != -1) {
-                    label = label.substring(0, labelIdx);
-                }
-                log.info("Loading image {}......", file);
-                INDArray factor = getFaceFactor(file);
-                if (factor == null) {
-                    continue;
-                }
 
+        List<Face> list =  faceService.queryAllFace();
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        list.stream().forEach(face->{
+            try {
+                File fileTemp =  objectMapper.readValue(face.getData(), File.class);
+
+                INDArray  factor = Nd4j.readTxt(fileTemp.getAbsolutePath());
+
+                String label = face.getLabel();
                 imageLibMap.put(label, factor);
-                log.info("Face of {} loaded.", label);
-                if (log.isDebugEnabled()) {
-                    log.debug("factor of {} is {}", label, factor);
-                }
             } catch (IOException e) {
-                log.warn("Exception occured while loading img file:" + file, e);
+                e.printStackTrace();
             }
-        }
+        });
+
+//        for (File file : libPath.listFiles()) {
+//            if (!file.isFile()) {
+//                log.info("skipped directory:{}", file);
+//                continue;
+//            }
+//            try {
+//                String label = file.getName();
+//                int labelIdx = label.lastIndexOf('.');
+//                if (labelIdx != -1) {
+//                    label = label.substring(0, labelIdx);
+//                }
+//                log.info("Loading image {}......", file);
+//                INDArray factor = getFaceFactor(file);
+//                if (factor == null) {
+//                    continue;
+//                }
+//
+//                imageLibMap.put(label, factor);
+//                log.info("Face of {} loaded.", label);
+//                if (log.isDebugEnabled()) {
+//                    log.debug("factor of {} is {}", label, factor);
+//                }
+//            } catch (IOException e) {
+//                log.warn("Exception occured while loading img file:" + file, e);
+//            }
+//        }
         log.info("load faces complete.");
         System.out.println("start detect");
     }
@@ -319,9 +376,9 @@ public class FacePictureController implements Initializable {
             log.warn("{} faces detected in image file:{}, the first detected face will be used.",
                     detection.length, img);
         }
-        if (log.isDebugEnabled()) {
-            ImageIO.write(detector.toImage(detection[0]), "jpg", new File(img.getName()));
-        }
+//        if (log.isDebugEnabled()) {
+//            ImageIO.write(detector.toImage(detection[0]), "jpg", new File(img.getName()));
+//        }
         INDArray output[] = graph.output(InceptionResNetV1.prewhiten(detection[0]));
         return output[1];
     }
