@@ -5,14 +5,16 @@
     <resultMap id="BaseResultMap"
                type="org.tang.springjavafxm1.entity.Face">
         <id column="ID" property="id" jdbcType="INTEGER"/>
-        <result column="Lable" property="label"
+        <result column="LABLE" property="label"
                 jdbcType="CHAR"/>
-        <result column="Data" property="data"
+        <result column="DATA" property="data"
+                jdbcType="CHAR"/>
+        <result column="SHAPE" property="shape"
                 jdbcType="CHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-      ID, label, data
+      ID, LABEL, SHAPE,DATA
     </sql>
 
     <select id="selectByPrimaryKey"
@@ -34,10 +36,11 @@
     <insert id="insert"
             parameterType="org.tang.springjavafxm1.entity.Face"
             useGeneratedKeys="true" keyProperty="id">
-    insert into face (id,label, data)
+    insert into face (id,label,shape, data)
     values (
       #{id,jdbcType=INTEGER},
       #{label,jdbcType=CHAR},
+      #{shape,jdbcType=CHAR},
       #{data,jdbcType=CHAR}
     )
   </insert>
