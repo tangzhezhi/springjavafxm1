@@ -104,6 +104,9 @@ public class FacePictureController implements Initializable {
     private Label saveFileDirLabel;
 
     @FXML
+    private Label selectNewFaceLibDirLabel;
+
+    @FXML
     protected TableView<PictureFileTableEntity> tableViewMain;
     @FXML
     protected TableColumn<PictureFileTableEntity, String> fileNoTableColumn;
@@ -389,8 +392,77 @@ public class FacePictureController implements Initializable {
                     detection.length, img);
         }
 
-        INDArray output[] = graph.output(InceptionResNetV1.prewhiten(detection[0]));
-        return output[1];
+        if(detection!=null && detection.length > 0){
+            INDArray output[] = graph.output(InceptionResNetV1.prewhiten(detection[0]));
+            return output[1];
+        }
+        return null;
     }
 
+    public void selectNewFaceLibDirAction(ActionEvent actionEvent) {
+        File file = directoryChooser.showDialog(selectFileDirBtn.getContextMenu());
+        if (file != null && file.isDirectory()) {
+            System.out.println(file.getName());
+            waitDealFile = file.listFiles();
+            selectNewFaceLibDirLabel.setText(file.getAbsolutePath());
+        }
+
+    }
+
+    public void dealNewFaceLibDirAction(ActionEvent actionEvent) {
+        for (File file : waitDealFile) {
+            if (!file.isFile()) {
+                log.info("skipped directory:{}", file);
+                continue;
+            }
+            String label = file.getName();
+            int labelIdx = label.lastIndexOf('.');
+            if (labelIdx != -1) {
+                label = label.substring(0, labelIdx);
+            }
+            log.info("Loading image {}......", file);
+            INDArray factor = null;
+            try {
+                factor = getFaceFactor(file);
+            } catch (IOException e) {
+//                    e.printStackTrace();
+                continue;
+            }
+            if (factor == null) {
+                continue;
+            }
+
+
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            String finalLabel = label;
+            INDArray finalFactor = factor;
+            executorService.submit(() -> {
+                String jsonString = "";
+                String shapeString = "";
+                try {
+                    Gson gson = new Gson();
+                    jsonString = gson.toJson(finalFactor.data().asDouble());
+                    long[] shape = finalFactor.shape();
+                    shapeString = gson.toJson(shape);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    faceService.addFace(Face.builder().label(finalLabel).shape(shapeString).data(jsonString).build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+            executorService.shutdown();
+
+            imageLibMap.put(label, factor);
+            log.info("Face of {} loaded.", label);
+            if (log.isDebugEnabled()) {
+                log.debug("factor of {} is {}", label, factor);
+            }
+        }
+    }
 }

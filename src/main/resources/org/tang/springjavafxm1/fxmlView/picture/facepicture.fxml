@@ -19,9 +19,12 @@
             <HBox BorderPane.alignment="CENTER_LEFT">
                <children>
                   <Label fx:id="selectFileDirLabel" prefWidth="140.0" wrapText="false" text="文件夹路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
-                  <Button fx:id="selectFileDirBtn" onAction="#selectFaceDirAction" text="选择文件夹" />
+                  <Button fx:id="selectFileDirBtn" onAction="#selectFaceDirAction" text="选择要处理文件夹" />
                   <Label fx:id="saveFileDirLabel" prefWidth="100.0" wrapText="false" text="保存路径" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
                   <Button fx:id="saveFileDirBtn" onAction="#saveFileDirAction" text="保存到" />
+                  <Label fx:id="selectNewFaceLibDirLabel" prefWidth="140.0" wrapText="false" text="选择人脸库" HBox.hgrow="ALWAYS" alignment="BOTTOM_CENTER"  opacity="Infinity"></Label>
+                  <Button fx:id="selectNewFaceLibDirBtn" onAction="#selectNewFaceLibDirAction" text="选择人脸库" />
+                  <Button fx:id="dealNewFaceLibDirBtn" onAction="#dealNewFaceLibDirAction" text="处理人脸库" />
                   <!--<Button fx:id="selectFileBtn" onAction="#selectFaceAction" text="选择文件" />-->
                   <Button fx:id="dealPictureBtn" onAction="#dealPictureAction" text="开始处理" />
                </children>
